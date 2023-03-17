@@ -86,7 +86,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public Mono<Void> deleteFile(String fileId) {
         return fileRepository.findById(fileId)
-                // TODO: 존재하지 않는 유저. Controller 에서 어떻게 Error handling 하는지 찾아보기
+                // TODO: 존재하지 않는 파일. Controller 에서 어떻게 Error handling 하는지 찾아보기
 //                .switchIfEmpty(Mono.error(new FileNotFoundException("존재하지 않는 파일입니다.")))
                 .switchIfEmpty(Mono.empty())
                 .doOnNext(fp -> System.out.println("[" + fp.getName() + "] 의 삭제를 시작합니다."))
