@@ -8,9 +8,9 @@ public interface FileService {
 
     Mono<Void> uploadFile(Mono<FilePart> filePartMono, String path);
 
-    Mono<File> getFileInfo(Long fileId);
+    Mono<File> getFileInfo(String fileId);
 
-    void downloadFile(Long fileId);
+    Mono<Void> downloadFile(String fileId);
 
-    void deleteFile(Long fileId);
+    Mono<Void> deleteFile(String fileId);
 }
