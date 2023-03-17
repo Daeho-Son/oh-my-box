@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Directory Listing</title>
+</head>
+<body>
+<h1>/<span th:text="${path}"></span></h1>
+<table>
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Size</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="file : ${files}">
+        <td>
+            <a th:if="${file.directory}" th:href="@{/} + ${file.path}" th:text="${file.name}"></a>
+            <span th:if="${not file.directory}" th:text="${file.name}"></span>
+        </td>
+        <td th:text="${file.type}"></td>
+        <td th:text="${file.size}"></td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>
