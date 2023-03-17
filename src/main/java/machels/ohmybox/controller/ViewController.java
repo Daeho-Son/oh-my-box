@@ -17,10 +17,6 @@ public class ViewController {
         return "signup";
     }
 
-    @GetMapping("/upload")
-    public String uploadPage() {
-        return "upload";
-    }
 
     @GetMapping("/ohmybox")
     public String getRootDirectory(Model model) {

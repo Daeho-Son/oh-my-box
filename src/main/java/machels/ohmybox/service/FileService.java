@@ -6,7 +6,7 @@ import reactor.core.publisher.Mono;
 
 public interface FileService {
 
-    Mono<Void> uploadFile(Mono<FilePart> filePartMono, String path);
+    Mono<Void> uploadFile(Mono<FilePart> filePartMono, String path, String folderId);
 
     Mono<File> getFileInfo(String fileId);
 
