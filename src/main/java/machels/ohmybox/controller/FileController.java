@@ -4,15 +4,12 @@ import lombok.AllArgsConstructor;
 import machels.ohmybox.domain.File;
 import machels.ohmybox.service.FileService;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ReactiveHttpOutputMessage;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
-import java.util.Map;
 
 @RestController
 @AllArgsConstructor
@@ -27,14 +24,9 @@ public class FileController {
     public Mono<Void> UploadFile(@PathVariable("folderId") String folderId,
                                  @RequestPart("fileToUpload") Mono<FilePart> filePartMono,
                                  ServerHttpResponse response,
-                                 @RequestHeader("Referer") URI referer,
-                                 @RequestHeader Map<String, String> header) {
+                                 @RequestHeader("Referer") URI referer) {
         // TODO: uploadFile() 의 매개변수를 한 개로 할 수 있는 방법 찾아보기
-        return fileService.uploadFile(filePartMono, referer.getPath(), folderId)
-                .then(Mono.fromRunnable(() -> {
-                    response.setStatusCode(HttpStatus.SEE_OTHER);
-                    response.getHeaders().setLocation((URI.create("/")));
-                }));
+        return fileService.uploadFile(filePartMono, referer.getPath(), folderId, response);
     }
 
     @GetMapping("/files/{fileId}/info")

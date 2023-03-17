@@ -5,6 +5,7 @@ import machels.ohmybox.domain.File;
 import machels.ohmybox.repository.FileRepository;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ZeroCopyHttpOutputMessage;
 import org.springframework.http.codec.multipart.FilePart;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -28,22 +30,30 @@ public class FileServiceImpl implements FileService {
     // TODO: file 업로드 시 맨 Location 맨 앞에 '.' 맨 뒤에 '/' 추가
     // TODO: 같은 이름 업로드 막기
     @Override
-    public Mono<Void> uploadFile(Mono<FilePart> filePartMono, String path, String folderId) {
+    public Mono<Void> uploadFile(Mono<FilePart> filePartMono, String path, String folderId, ServerHttpResponse response) {
         return filePartMono
                 .doOnNext(fp -> System.out.println("[" + fp.filename() + "] 의 업로드를 시작합니다."))
                 .flatMap(fp -> {
-                    Path filePath = rootPath.resolve(fp.filename());
-                    return fp.transferTo(filePath)
+                    response.setStatusCode(HttpStatus.SEE_OTHER);
+                    response.getHeaders().setLocation((URI.create(path)));
+                    Path pathWithFileName = rootPath.resolve(fp.filename());
+                    java.io.File file = new java.io.File("." + path, fp.filename());
+                    if (file.exists()) {
+                        // TODO: 고민. 어떻게 파일이 이미 존재하는지를 클라이언트에 알리지?
+                        // TODO: 고민. 어떻게 처리를 할지?
+                        return Mono.empty();
+                    }
+                    return fp.transferTo(pathWithFileName)
                             .then(Mono.fromRunnable(() -> {
-                                File file = File.builder()
+                                File fileData = File.builder()
                                         .userId("1") // TODO: 유저 추가 후 변경. (+ index.html, directory.html)
                                         .folderId(folderId)
                                         .name(fp.filename())
                                         .type(FilenameUtils.getExtension(fp.filename()) + " 파일")
                                         .location("." + path + "/")
-                                        .size(filePath.toFile().length())
+                                        .size(pathWithFileName.toFile().length())
                                         .build();
-                                fileRepository.save(file).subscribe();
+                                fileRepository.save(fileData).subscribe();
                             })).log();
                 })
                 .doOnSuccess(fp -> System.out.println("업로드를 성공했습니다."))
@@ -77,9 +87,9 @@ public class FileServiceImpl implements FileService {
                 .doOnNext(fp -> System.out.println("[" + fp.getName() + "] 의 삭제를 시작합니다."))
                 .flatMap(fp -> {
                     String stringPath = fp.getLocation() + fp.getName();
-                    Path filePath = Paths.get(stringPath);
+                    Path pathWithFileName = Paths.get(stringPath);
                     try {
-                        Files.deleteIfExists(filePath);
+                        Files.deleteIfExists(pathWithFileName);
                     } catch (IOException e) {
                         // TODO: 예외처리
                         System.out.println("파일 삭제에 실패했습니다: " + e);
