@@ -4,7 +4,11 @@ import lombok.RequiredArgsConstructor;
 import machels.ohmybox.domain.File;
 import machels.ohmybox.repository.FileRepository;
 import org.apache.commons.io.FilenameUtils;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.MediaType;
+import org.springframework.http.ZeroCopyHttpOutputMessage;
 import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -22,13 +26,13 @@ public class FileServiceImpl implements FileService {
     private final Path rootPath = Paths.get("./ohmybox/1");
 
     // TODO: file 업로드 시 맨 Location 맨 앞에 '.' 맨 뒤에 '/' 추가
+    // TODO: 같은 이름 업로드 막기
     @Override
     public Mono<Void> uploadFile(Mono<FilePart> filePartMono, String path, String folderId) {
         return filePartMono
                 .doOnNext(fp -> System.out.println("[" + fp.filename() + "] 의 업로드를 시작합니다."))
                 .flatMap(fp -> {
                     Path filePath = rootPath.resolve(fp.filename());
-                    System.out.println(filePath); // TODO: 삭제.
                     return fp.transferTo(filePath)
                             .then(Mono.fromRunnable(() -> {
                                 File file = File.builder()
@@ -42,6 +46,7 @@ public class FileServiceImpl implements FileService {
                                 fileRepository.save(file).subscribe();
                             })).log();
                 })
+                .doOnSuccess(fp -> System.out.println("업로드를 성공했습니다."))
                 .then().log();
     }
 
@@ -51,21 +56,27 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public Mono<Void> downloadFile(String fileId) {
+    public Mono<Void> downloadFile(String fileId, ServerHttpResponse response) {
         return fileRepository.findById(fileId)
+                .doOnNext(fp -> System.out.println("[" + fp.getName() + "] 의 다운로드를 시작합니다."))
                 .flatMap(fp -> {
-                    java.io.File file = new java.io.File(fp.getLocation(), fp.getName());
-                    System.out.println(file.length());
-                    return Mono.empty();
+                    ZeroCopyHttpOutputMessage zeroCopyResponse = (ZeroCopyHttpOutputMessage) response;
+                    java.io.File file = new java.io.File(fp.getLocation() + fp.getName());
+                    response.getHeaders().setContentDisposition(ContentDisposition.attachment().filename(fp.getName()).build());
+                    response.getHeaders().setContentType(MediaType.APPLICATION_OCTET_STREAM);
+                    return zeroCopyResponse.writeWith(file, 0, file.length());
                 })
-                .then();
+                .doOnSuccess(fp -> System.out.println("다운로드를 성공했습니다."))
+                .then().log();
     }
 
+    // TODO: bug. 파일이 없어도 "파일을 삭제했습니다." 라는 메시지 출력됨.
     @Override
     public Mono<Void> deleteFile(String fileId) {
         return fileRepository.findById(fileId)
+                .doOnNext(fp -> System.out.println("[" + fp.getName() + "] 의 삭제를 시작합니다."))
                 .flatMap(fp -> {
-                    String stringPath =fp.getLocation() + fp.getName();
+                    String stringPath = fp.getLocation() + fp.getName();
                     Path filePath = Paths.get(stringPath);
                     try {
                         Files.deleteIfExists(filePath);
@@ -75,6 +86,8 @@ public class FileServiceImpl implements FileService {
                     }
                     fileRepository.delete(fp).subscribe();
                     return Mono.empty();
-                });
+                })
+                .doOnSuccess(fp -> System.out.println("파일 삭제를 성공했습니다."))
+                .then().log();
     }
 }
