@@ -1,8 +1,10 @@
-.DS_Store
-../ohmybox/OHMYBOX/
+ohmybox/
 backup/
+.DS_Store
 .gitmessage.txt
 HELP.md
+
+# Build
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
