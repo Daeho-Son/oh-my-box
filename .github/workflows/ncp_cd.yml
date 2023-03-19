@@ -24,4 +24,4 @@ jobs:
           password: ${{ secrets.NCP_PROD_SERVER_PASSWORD }}
           port: ${{ secrets.NCP_PROD_SERVER_SSH_PORT }}
           script: |
-            bash /root/scripts/start.sh
+            bash /root/oh-mybox-devops/scripts/start.sh
