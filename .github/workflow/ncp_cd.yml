@@ -1,0 +1,27 @@
+name: NCP-CD
+
+on:
+  push:
+    branches:
+      main
+      
+jobs:
+  CD:
+    runs-on: ubuntu-18.04
+    
+    steps:
+      # 체크아웃 및 JDK 세팅
+      - name: Checkout
+        uses: actions/checkout@v3
+          
+      # SSH로 접속
+      - name: Deploy to Prod
+        uses: appleboy/ssh-action@master
+        id: deploy-main
+        with:
+          host: ${{ secrets.NCP_PROD_SERVER_IP }}
+          username: ${{ secrets.NCP_PROD_SERVER_USER }}
+          password: ${{ secrets.NCP_PROD_SERVER_PASSWORD }}
+          port: ${{ secrets.NCP_PROD_SERVER_SSH_PORT }}
+          script: |
+            bash /root/scripts/start.sh
