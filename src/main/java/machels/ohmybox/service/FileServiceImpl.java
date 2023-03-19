@@ -32,7 +32,7 @@ public class FileServiceImpl implements FileService {
     // TODO: file 업로드 시 맨 Location 맨 앞에 '.' 맨 뒤에 '/' 추가
     // TODO: 같은 이름 업로드 막기
     @Override
-    public Mono<Void> uploadFile(Mono<FilePart> filePartMono, String path, String folderId, ServerHttpResponse response) {
+    public Mono<Void> uploadFile(Mono<FilePart> filePartMono, String path, String directoryId, ServerHttpResponse response) {
         return filePartMono
                 .doOnNext(fp -> System.out.println("[" + fp.filename() + "] 의 업로드를 시작합니다."))
                 .flatMap(fp -> {
@@ -49,7 +49,7 @@ public class FileServiceImpl implements FileService {
                             .then(Mono.fromRunnable(() -> {
                                 File fileData = File.builder()
                                         .userId("1") // TODO: 유저 추가 후 변경. (+ index.html, directory.html)
-                                        .folderId(folderId)
+                                        .directoryId(directoryId)
                                         .name(fp.filename())
                                         .type(FilenameUtils.getExtension(fp.filename()) + " 파일")
                                         .location("." + path + "/")

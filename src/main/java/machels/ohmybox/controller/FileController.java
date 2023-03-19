@@ -19,14 +19,15 @@ public class FileController {
     private final FileService fileService;
 
     // TODO: user 생성 후, 해당 ./ohmybox 에 userId 디렉토리 추가하기. ./ohmybox/{userId} 가 root directory.
-    @PostMapping("/folders/{folderId}/files")
+    @PostMapping("/directorys/{directoryId}/files")
     @ResponseStatus(value = HttpStatus.CREATED)
-    public Mono<Void> UploadFile(@PathVariable("folderId") String folderId,
+    public Mono<Void> UploadFile(@PathVariable("directoryId") String directoryId,
                                  @RequestPart("fileToUpload") Mono<FilePart> filePartMono,
                                  ServerHttpResponse response,
                                  @RequestHeader("Referer") URI referer) {
         // TODO: uploadFile() 의 매개변수를 한 개로 할 수 있는 방법 찾아보기
-        return fileService.uploadFile(filePartMono, referer.getPath(), folderId, response);
+        System.out.println(directoryId);
+        return fileService.uploadFile(filePartMono, referer.getPath(), directoryId, response);
     }
 
     @GetMapping("/files/{fileId}/info")
