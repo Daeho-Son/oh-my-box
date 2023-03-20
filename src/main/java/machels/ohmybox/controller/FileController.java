@@ -19,7 +19,7 @@ public class FileController {
     private final FileService fileService;
 
     // TODO: user 생성 후, 해당 ./ohmybox 에 userId 디렉토리 추가하기. ./ohmybox/{userId} 가 root directory.
-    @PostMapping("/directorys/{directoryId}/files")
+    @PostMapping("/directoies/{directoryId}/files")
     @ResponseStatus(value = HttpStatus.CREATED)
     public Mono<Void> UploadFile(@PathVariable("directoryId") String directoryId,
                                  @RequestPart("fileToUpload") Mono<FilePart> filePartMono,

@@ -5,6 +5,24 @@
     <title>Signup</title>
 </head>
 <body>
-
+<a href="/">홈으로 이동</a>
+<h1>
+    <span>회원 가입</span>
+</h1>
+<form th:action="@{/api/v1/users}" method="post">
+    <div>
+        <label>아이디: </label>
+        <input th:name="accountId", type="text" required>
+    </div>
+    <div>
+        <label>비밀번호: </label>
+        <input th:name="password", type="password" required>
+    </div>
+    <div>
+        <label>이름: </label>
+        <input th:name="name" type="text" required>
+    </div>
+        <button type="submit">등록</button>
+</form>
 </body>
 </html>

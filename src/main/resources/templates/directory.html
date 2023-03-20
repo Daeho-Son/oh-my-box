@@ -7,13 +7,13 @@
 <body>
 <a href="/">홈으로 이동</a>
 <h1>/<span th:text="${path}"></span></h1>
-<form th:action="@{/api/v1/directorys/{directoryId}/files(directoryId=${directoryId})}" enctype="multipart/form-data" method="post">
+<form th:action="@{/api/v1/directoies/{directoryId}/files(directoryId=${directoryId})}" enctype="multipart/form-data" method="post">
     <div>
         <input id="fileToUpload" name="fileToUpload" type="file">
         <button type="submit">업로드</button>
     </div>
 </form>
-<form th:action="@{/api/v1/directorys/{directoryId}(directoryId=${directoryId})}" method="post">
+<form th:action="@{/api/v1/directoies/{directoryId}(directoryId=${directoryId})}" method="post">
     <button type="submit">폴더 생성</button>
 </form>
 <table>
