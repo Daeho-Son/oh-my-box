@@ -6,9 +6,7 @@ import machels.ohmybox.domain.File;
 import machels.ohmybox.repository.DirectoryRepository;
 import machels.ohmybox.repository.FileRepository;
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ZeroCopyHttpOutputMessage;
 import org.springframework.http.codec.multipart.FilePart;
@@ -16,9 +14,10 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -68,24 +67,18 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public Mono<Void> downloadFile(String fileId, ServerHttpResponse response) {
+        final int bufferSize = 1024 * 1024;
+
         return fileRepository.findById(fileId)
                 .flatMap(fp -> {
                     Path path = Paths.get(storagePath + fileId);
-                    System.out.println(fp.getName());
-                    try {
-                        String encodingFileName = URLEncoder.encode(fp.getName(), "UTF-8").replace("+", "%20");
-                        response.getHeaders().setContentDisposition(ContentDisposition.attachment().filename(encodingFileName).build());
-//                        response.getHeaders().set("Content-Disposition", "attachment; filename=\"" + encodingFileName  + "");
-                        response.getHeaders().set("Content-Transfer-Encoding", "binary");
-                        response.getHeaders().setContentType(MediaType.APPLICATION_OCTET_STREAM);
-                        return response.writeWith(DataBufferUtils.readInputStream(
-                                () -> Files.newInputStream(path),
-                                response.bufferFactory(),
-                                1024 * 1024
-                        ));
-                    } catch (UnsupportedEncodingException e) {
-                        return Mono.error(new RuntimeException(e));
-                    }
+                    String encodingFileName = URLEncoder.encode(fp.getName(), StandardCharsets.UTF_8).replace("+", "%20");
+                    response.getHeaders().setContentDisposition(ContentDisposition.attachment().filename(encodingFileName).build());
+                    response.getHeaders().set("Content-Transfer-Encoding", "binary");
+                    response.getHeaders().setContentType(MediaType.APPLICATION_OCTET_STREAM);
+                    ZeroCopyHttpOutputMessage zeroCopyHttpOutputMessage = (ZeroCopyHttpOutputMessage) response;
+                    java.io.File file = path.toFile();
+                    return zeroCopyHttpOutputMessage.writeWith(file, 0, file.length());
                 });
     }
 
@@ -96,10 +89,10 @@ public class FileServiceImpl implements FileService {
                 .flatMap(fp -> {
                     Path pathWithFileName = Paths.get(storagePath + fp.getId());
                     try {
-                        Files.deleteIfExists(pathWithFileName);
+                        Files.delete(pathWithFileName);
                     } catch (IOException e) {
                         // TODO: 예외처리
-                        System.out.println("파일 삭제에 실패했습니다: " + e);
+                        return Mono.error(new FileNotFoundException());
                     }
                     return fileRepository.delete(fp);
                 });
