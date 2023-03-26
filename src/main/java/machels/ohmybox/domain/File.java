@@ -7,6 +7,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 
@@ -18,24 +19,33 @@ public class File {
     @Id
     private String id;
 
+    @Field("user_id")
     private String userId;
 
-    private String directoryId;
+    @Field("current_directory_id")
+    private String currentDirectoryId;
 
+    @Field("name")
     private String name;
 
+    @Field("type")
     private String type;
 
+    @Field("location")
     private String location;
 
+    @Field("size")
     private Long size;
 
     @CreatedDate
-    private LocalDateTime createAt;
+    @Field("created_at")
+    private LocalDateTime createdAt;
 
     @LastModifiedDate
+    @Field("updated_at")
     private LocalDateTime updatedAt;
 
     @Version
+    @Field("version")
     private Integer version;
 }
